@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: authService
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 16032005
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # Yalnız development üçün `update`, production üçün `none` və ya `validate` istifadə edin
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: aytacagazadehvidadi@gmail.com
+    password: eluz ynay uuyn zxia
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  task:
+    execution:
+      thread-name-prefix: async-task-
+      pool:
+        core-size: 2
+        max-size: 5
+        queue-capacity: 10
+
+# JWT Access Token Settings
+jwt:
+  secret: b3cdEi8ywRPvpCmcnEmKZtgh0g1mebDO49LSbbMDGWftX8e5ESQdfcywvNiFIz01Ot3pj/F0L1FB+hioI9zULQ==
+  expiration:
+    ms: 300000 # 5 dəqiqə (milisaniyə)
+
+  # Refresh Token Settings
+  refresh-expiration:
+    ms: 604800000 # 7 gün (milisaniyə)
+
+# OTP Settings
+otp:
+  expiration-seconds: 300 # 5 dəqiqə (saniyə)
+
+logging:
+  level:
+    com.example.authservice: DEBUG # Öz paketiniz üçün DEBUG logları
+    org.springframework.security: INFO # Spring Security logları
+    org.hibernate.SQL: DEBUG # SQL sorgularını göstərmək üçün
+    org.hibernate.orm.jdbc.bind: TRACE # SQL parameterlərini göstərmək üçün
+
+# SpringDoc OpenAPI (Swagger UI) Konfiqurasiyası
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+server:
+  port: 1111
