@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.40/398c6d2d7c42c96b65e78d2ddc9be0058c163453/lombok-1.18.40.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.mapstruct/mapstruct-processor/1.5.5.Final/897f6f115930b936287bef552bf5fe28cc64717d/mapstruct-processor-1.5.5.Final.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok-mapstruct-binding/0.2.0/2f1cf9ced7b720ba4996c942b816669e63f0fa4f/lombok-mapstruct-binding-0.2.0.jar" />
+        </processorPath>
+        <module name="SkillUserService.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="AuthService" target="17" />
+      <module name="authService" target="17" />
+      <module name="authService.main" target="17" />
+      <module name="authService.test" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ApiGateway" options="-parameters" />
+      <module name="ApiGateway.main" options="-parameters" />
+      <module name="ApiGateway.test" options="-parameters" />
+      <module name="AuthService" options="-parameters" />
+      <module name="EurekaService" options="-parameters" />
+      <module name="EurekaService.main" options="-parameters" />
+      <module name="EurekaService.test" options="-parameters" />
+      <module name="SkillUserService" options="-parameters" />
+      <module name="SkillUserService.main" options="-parameters" />
+      <module name="SkillUserService.test" options="-parameters" />
+      <module name="authService" options="-parameters -Amapstruct.defaultComponentModel=spring -Alombok.addLombokGeneratedAnnotation=true" />
+      <module name="authService.main" options="-parameters -Amapstruct.defaultComponentModel=spring -Alombok.addLombokGeneratedAnnotation=true" />
+      <module name="authService.test" options="-parameters -Amapstruct.defaultComponentModel=spring -Alombok.addLombokGeneratedAnnotation=true" />
+      <module name="com.example.authService" options="-parameters -Amapstruct.defaultComponentModel=spring -Alombok.addLombokGeneratedAnnotation=true" />
+      <module name="com.example.authService.main" options="-parameters -Amapstruct.defaultComponentModel=spring -Alombok.addLombokGeneratedAnnotation=true" />
+      <module name="com.example.authService.test" options="-parameters -Amapstruct.defaultComponentModel=spring -Alombok.addLombokGeneratedAnnotation=true" />
+    </option>
+  </component>
+</project>
