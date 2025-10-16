@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +18,7 @@ import java.util.Set;
 public class UserBioCreateDto {
 
     @NotNull(message = "Auth User ID cannot be null")
-    private Long authUserId;
+    private UUID authUserId;
 
     @NotBlank(message = "First name cannot be empty")
     @Size(max = 50, message = "First name cannot exceed 50 characters")

@@ -1,0 +1,78 @@
+version: '3.9'
+
+services:
+  # 🧭 Eureka Service Discovery
+  eureka-server:
+    image: yourorg/eureka-server:latest
+    container_name: eureka-server
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - skillswap-net
+    restart: always
+
+  # 💬 Chat Service (Spring Boot + MongoDB)
+  chat-service:
+    image: yourorg/chat-service:latest
+    container_name: chat-service
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    depends_on:
+      - mongodb
+      - eureka-server
+    ports:
+      - "1113:1113"
+    environment:
+      - SPRING_APPLICATION_NAME=chat-service
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/skillswap-chat
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SERVER_PORT=1113
+    networks:
+      - skillswap-net
+    restart: always
+
+  # 🍃 MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret123
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - skillswap-net
+    restart: always
+
+  # 🌐 Mongo Express (opsional — GUI idarə üçün)
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: secret123
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    depends_on:
+      - mongodb
+    networks:
+      - skillswap-net
+    restart: unless-stopped
+
+networks:
+  skillswap-net:
+    driver: bridge
+
+volumes:
+  mongo_data:

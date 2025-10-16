@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -13,7 +14,7 @@ import java.util.Set;
 @Builder
 public class UserBioResponseDTO {
     private Long id;
-    private Long authUserId;
+    private UUID authUserId;
     private String firstName;
     private String lastName;
     private String education;

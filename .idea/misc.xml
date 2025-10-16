@@ -3,7 +3,8 @@
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/ApiGateway" />
-    <file type="web" url="file://$PROJECT_DIR$/AuthService" />
+    <file type="web" url="file://$PROJECT_DIR$/authService" />
+    <file type="web" url="file://$PROJECT_DIR$/ChatService" />
     <file type="web" url="file://$PROJECT_DIR$/EurekaService" />
     <file type="web" url="file://$PROJECT_DIR$/SkillUserService" />
   </component>

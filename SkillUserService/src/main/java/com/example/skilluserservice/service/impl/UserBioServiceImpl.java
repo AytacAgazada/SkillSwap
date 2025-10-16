@@ -1,5 +1,6 @@
 package com.example.skilluserservice.service.impl;
 
+import com.example.skilluserservice.client.AuthClient;
 import com.example.skilluserservice.dto.UserBioCreateDto;
 import com.example.skilluserservice.dto.UserBioResponseDTO;
 import com.example.skilluserservice.dto.UserBioUpdateDTO;
@@ -12,39 +13,57 @@ import com.example.skilluserservice.repository.SkillRepository;
 import com.example.skilluserservice.repository.UserBioRepository;
 import com.example.skilluserservice.service.UserBioService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserBioServiceImpl implements UserBioService {
 
     private final UserBioRepository userBioRepository;
     private final SkillRepository skillRepository;
     private final UserBioMapper userBioMapper;
+    private final AuthClient authClient; // Auth Service Feign client
 
     @Override
+    @Transactional
     public UserBioResponseDTO createUserBio(UserBioCreateDto userBioCreateDto) {
-        if (userBioRepository.findByAuthUserId(userBioCreateDto.getAuthUserId()).isPresent()) {
-            throw new InvalidInputException("User Bio with authUserId " + userBioCreateDto.getAuthUserId() + " already exists.");
+        UUID authUserId = userBioCreateDto.getAuthUserId();
+
+        // 1️⃣ AuthService-də istifadəçi varlığını yoxlayırıq
+        Boolean exists = authClient.doesUserExist(authUserId);
+        if (exists == null || !exists) {
+            throw new InvalidInputException("Auth user with ID " + authUserId + " does not exist.");
+        }
+
+        // 2️⃣ Role yoxlaması (USER olmalıdır)
+        String role = authClient.getUserRole(authUserId);
+        if (!"USER".equalsIgnoreCase(role)) {
+            throw new InvalidInputException("Auth user with ID " + authUserId + " is not a USER.");
+        }
+
+        // 3️⃣ UserBio artıq var mı yoxlayırıq
+        if (userBioRepository.findByAuthUserId(authUserId).isPresent()) {
+            throw new InvalidInputException("User Bio with authUserId " + authUserId + " already exists.");
         }
 
         UserBio userBio = userBioMapper.toEntity(userBioCreateDto);
 
-        Set<Skill> skills = new HashSet<>();
-        if (userBioCreateDto.getSkillIds() != null && !userBioCreateDto.getSkillIds().isEmpty()) {
-            skills = new HashSet<>(skillRepository.findAllById(userBioCreateDto.getSkillIds()));
-            if (skills.size() != userBioCreateDto.getSkillIds().size()) {
-                throw new InvalidInputException("One or more skill IDs are invalid.");
-            }
-        }
+        // 4️⃣ Skills map-ləmək
+        Set<Skill> skills = mapSkills(userBioCreateDto.getSkillIds());
         userBio.setSkills(skills);
 
-        return userBioMapper.toDto(userBioRepository.save(userBio));
+        // 5️⃣ Yaddaşa yazmaq
+        UserBio saved = userBioRepository.save(userBio);
+        log.info("Created UserBio for authUserId={}", authUserId);
+
+        return userBioMapper.toDto(saved);
     }
 
     @Override
@@ -55,10 +74,10 @@ public class UserBioServiceImpl implements UserBioService {
     }
 
     @Override
-    public UserBioResponseDTO getUserBioByAuthUserId(Long authUserId) {
-        UserBio userBio = userBioRepository.findByAuthUserId(authUserId)
+    public UserBioResponseDTO getUserBioByAuthUserId(UUID authUserId) {
+        return userBioRepository.findByAuthUserId(authUserId)
+                .map(userBioMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User Bio not found with authUserId: " + authUserId));
-        return userBioMapper.toDto(userBio);
     }
 
     @Override
@@ -69,36 +88,62 @@ public class UserBioServiceImpl implements UserBioService {
     }
 
     @Override
-    public UserBioResponseDTO updateUserBio(UserBioUpdateDTO userBioUpdateDTO) {
-        UserBio existingUserBio = userBioRepository.findById(userBioUpdateDTO.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Bio not found with id: " + userBioUpdateDTO.getId()));
+    @Transactional
+    public UserBioResponseDTO updateUserBio(UserBioUpdateDTO updateDTO) {
+        UUID authUserId = updateDTO.getAuthUserId();
 
-        // Check if authUserId is being changed to an existing one
-        if (!existingUserBio.getAuthUserId().equals(userBioUpdateDTO.getAuthUserId())) {
-            if (userBioRepository.findByAuthUserId(userBioUpdateDTO.getAuthUserId()).isPresent()) {
-                throw new InvalidInputException("User Bio with authUserId " + userBioUpdateDTO.getAuthUserId() + " already exists.");
+        UserBio existing = userBioRepository.findById(updateDTO.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User Bio not found with id: " + updateDTO.getId()));
+
+        // Əgər authUserId dəyişirsə, yoxlayırıq
+        if (!existing.getAuthUserId().equals(authUserId)) {
+            if (userBioRepository.findByAuthUserId(authUserId).isPresent()) {
+                throw new InvalidInputException("User Bio with authUserId " + authUserId + " already exists.");
+            }
+
+            // AuthService-də yoxlayırıq
+            Boolean exists = authClient.doesUserExist(authUserId);
+            if (exists == null || !exists) {
+                throw new InvalidInputException("Auth user with ID " + authUserId + " does not exist.");
+            }
+
+            String role = authClient.getUserRole(authUserId);
+            if (!"USER".equalsIgnoreCase(role)) {
+                throw new InvalidInputException("Auth user with ID " + authUserId + " is not a USER.");
             }
         }
 
-        userBioMapper.updateEntityFromDto(userBioUpdateDTO, existingUserBio);
+        // Entity-ni DTO ilə yeniləyirik
+        userBioMapper.updateEntityFromDto(updateDTO, existing);
 
-        Set<Skill> skills = new HashSet<>();
-        if (userBioUpdateDTO.getSkillIds() != null && !userBioUpdateDTO.getSkillIds().isEmpty()) {
-            skills = new HashSet<>(skillRepository.findAllById(userBioUpdateDTO.getSkillIds()));
-            if (skills.size() != userBioUpdateDTO.getSkillIds().size()) {
-                throw new InvalidInputException("One or more skill IDs are invalid.");
-            }
-        }
-        existingUserBio.setSkills(skills);
+        // Skills yeniləmə
+        Set<Skill> skills = mapSkills(updateDTO.getSkillIds());
+        existing.setSkills(skills);
 
-        return userBioMapper.toDto(userBioRepository.save(existingUserBio));
+        UserBio saved = userBioRepository.save(existing);
+        log.info("Updated UserBio id={} for authUserId={}", saved.getId(), authUserId);
+
+        return userBioMapper.toDto(saved);
     }
 
     @Override
+    @Transactional
     public void deleteUserBio(Long id) {
-        if (!userBioRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User Bio not found with id: " + id);
+        UserBio existing = userBioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Bio not found with id: " + id));
+
+        userBioRepository.delete(existing);
+        log.info("Deleted UserBio id={} for authUserId={}", existing.getId(), existing.getAuthUserId());
+    }
+
+    // --- Helper method ---
+    private Set<Skill> mapSkills(Set<Long> skillIds) {
+        if (skillIds == null || skillIds.isEmpty()) return Collections.emptySet();
+
+        Set<Skill> skills = new HashSet<>(skillRepository.findAllById(skillIds));
+        if (skills.size() != skillIds.size()) {
+            throw new InvalidInputException("One or more skill IDs are invalid.");
         }
-        userBioRepository.deleteById(id);
+        return skills;
     }
 }

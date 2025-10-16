@@ -1,0 +1,40 @@
+spring:
+  main:
+    web-application-type: reactive
+
+  cloud:
+    gateway:
+
+      default-filters:
+        - name: AddAuthUserIdHeaderFilter
+      routes:
+        - id: auth-service
+          uri: http://localhost:1111
+          predicates:
+            - Path=/api/auth/**
+        - id: skill-user-service
+          uri: http://localhost:1112
+          predicates:
+            - Path=/api/user-bios/**,/api/skills/**
+        - id: chat-service
+          uri: http://localhost:1113
+          predicates:
+            - Path=/api/chat/history/**,/chat.sendMessage/**
+
+#        - id: appointment-service
+#          uri: http://localhost:9197
+#          predicates:
+#            - Path=/api/appointments/**
+
+eureka:
+  client:
+   serviceUrl:
+     defaultZone: http://localhost:8761/eureka
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration:
+    ms: 300000
+
+server:
+  port: 1120

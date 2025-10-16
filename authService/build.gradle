@@ -17,6 +17,10 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    set('springCloudVersion', "2023.0.0")
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -40,11 +44,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // JWT dependencies
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
@@ -68,6 +73,12 @@ dependencies {
 
     // H2 Database (Test üçün)
     testRuntimeOnly 'com.h2database:h2'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 tasks.withType(JavaCompile) {

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: authService
+    name: auth-service
 
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
@@ -36,6 +36,11 @@ spring:
         core-size: 2
         max-size: 5
         queue-capacity: 10
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
 
 # JWT Access Token Settings
 jwt:

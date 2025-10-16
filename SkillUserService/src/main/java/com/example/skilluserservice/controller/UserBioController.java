@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user-bios")
@@ -32,7 +33,7 @@ public class UserBioController {
     }
 
     @GetMapping("/auth-user/{authUserId}")
-    public ResponseEntity<UserBioResponseDTO> getUserBioByAuthUserId(@PathVariable Long authUserId) {
+    public ResponseEntity<UserBioResponseDTO> getUserBioByAuthUserId(@PathVariable UUID authUserId) {
         UserBioResponseDTO userBioResponseDTO = userBioService.getUserBioByAuthUserId(authUserId);
         return ResponseEntity.ok(userBioResponseDTO);
     }

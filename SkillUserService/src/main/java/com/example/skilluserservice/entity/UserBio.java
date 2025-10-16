@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -21,7 +22,7 @@ public class UserBio {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private Long authUserId;
+    private UUID authUserId;
 
     @Column(nullable = false, length = 50)
     private String firstName;

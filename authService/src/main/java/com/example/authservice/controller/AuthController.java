@@ -1,6 +1,8 @@
 package com.example.authservice.controller;
 
+import com.example.authservice.exception.ResourceNotFoundException;
 import com.example.authservice.model.dto.*;
+import com.example.authservice.repository.UserRepository;
 import com.example.authservice.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,6 +26,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @Operation(summary = "Register a new user", description = "Creates a new user account with provided details.")
     @ApiResponses(value = {
@@ -173,5 +176,25 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // USER və ya ADMIN rollarına sahib istifadəçilər üçün
     public ResponseEntity<String> getUserOrAdminView() {
         return ResponseEntity.ok("This view is for USERs or ADMINs!");
+    }
+
+    @GetMapping("/{authUserId}/exists")
+    public ResponseEntity<Boolean> doesUserExist(@PathVariable String authUserId) {
+        UUID userId = UUID.fromString(authUserId); // String → UUID çevrilir
+        boolean exists = userRepository.existsById(userId);
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/{authUserId}/role")
+    public ResponseEntity<String> getUserRole(@PathVariable String authUserId) {
+        UUID userId = UUID.fromString(authUserId);
+        log.info("Request to get role for authUserId: {}", userId);
+
+        return userRepository.findById(userId)
+                .map(authUser -> ResponseEntity.ok(authUser.getRole().name()))
+                .orElseThrow(() -> {
+                    log.warn("Auth User with ID {} not found when checking role.", userId);
+                    return new ResourceNotFoundException("Auth User with ID " + userId + " not found.");
+                });
     }
 }
