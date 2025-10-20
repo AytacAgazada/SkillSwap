@@ -6,6 +6,7 @@
     <file type="web" url="file://$PROJECT_DIR$/authService" />
     <file type="web" url="file://$PROJECT_DIR$/ChatService" />
     <file type="web" url="file://$PROJECT_DIR$/EurekaService" />
+    <file type="web" url="file://$PROJECT_DIR$/NotificationService" />
     <file type="web" url="file://$PROJECT_DIR$/SkillUserService" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_23" default="true" project-jdk-name="23" project-jdk-type="JavaSDK">

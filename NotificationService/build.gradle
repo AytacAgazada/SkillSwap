@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+ext {
+    springCloudVersion = "2025.0.0"
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'NotificationService'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Starter Dependencies
+    // Web (REST API endpoints)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // MongoDB (Notification History persistence)
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // Spring Mail (Email notifications)
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // WebSocket (Real-time in-app notifications)
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // Spring Kafka (Consuming events from Message Broker)
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // Spring Boot Actuator (Monitoring and health checks)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // Lombok (For DTOs and Models - @Data, @Builder)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Jackson (For JSON processing/Serialization)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Test Dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

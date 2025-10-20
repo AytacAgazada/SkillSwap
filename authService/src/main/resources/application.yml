@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update # Yalnız development üçün `update`, production üçün `none` və ya `validate` istifadə edin
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:

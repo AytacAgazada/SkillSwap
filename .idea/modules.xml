@@ -3,7 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ApiGateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/ApiGateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ChatService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/ChatService.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/NotificationService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/NotificationService.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/SkillSwap.iml" filepath="$PROJECT_DIR$/.idea/SkillSwap.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SkillUserService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/SkillUserService.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.authService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.authService.main.iml" />
     </modules>
   </component>

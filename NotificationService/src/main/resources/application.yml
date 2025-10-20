@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: NotificationService
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/notificationdb
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: aytacagazadehvidadi@gmail.com
+    password: eluz ynay uuyn zxia
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  task:
+    execution:
+      thread-name-prefix: async-task-
+      pool:
+        core-size: 2
+        max-size: 5
+        queue-capacity: 10
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+        default.topic.partitions: 3
+
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.value.default.type: com.example.notificationservice.dto.NotificationEventDTO
+        spring.json.trusted.packages: "com.example.notificationservice.*"
+
+kafka:
+  topic:
+    notification-changes-topic: notification-changes-topic
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+logging:
+  level:
+    com.example.notificationservice: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+
+server:
+  port: 1114
