@@ -4,6 +4,8 @@ import com.example.authservice.exception.InvalidCredentialsException;
 import com.example.authservice.exception.UserAlreadyExistsException;
 import com.example.authservice.exception.TokenRefreshException;
 import com.example.authservice.exception.OtpException;
+import com.example.authservice.kafka.KafkaAuthProducer;
+import com.example.authservice.kafka.UserRegisteredEventDTO;
 import com.example.authservice.mapper.UserMapper;
 import com.example.authservice.model.dto.LoginRequest;
 import com.example.authservice.model.dto.AuthResponse;
@@ -54,13 +56,14 @@ public class AuthService {
 
     @Value("${otp.expiration-seconds}")
     private long otpExpirationSeconds;
+    private final KafkaAuthProducer kafkaProducer;
 
     // Konstruktor Spring tərəfindən inject edilən dependency-ləri alır.
     // TelegramService artıq yoxdur.
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper,
                        AuthenticationManager authenticationManager, JwtUtils jwtUtils,
                        RefreshTokenRepository refreshTokenRepository, EmailService emailService,
-                       ConfirmationTokenRepository confirmationTokenRepository) {
+                       ConfirmationTokenRepository confirmationTokenRepository, KafkaAuthProducer kafkaProducer) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
@@ -69,6 +72,7 @@ public class AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.emailService = emailService;
         this.confirmationTokenRepository = confirmationTokenRepository;
+        this.kafkaProducer = kafkaProducer;
     }
 
     /**
@@ -101,8 +105,20 @@ public class AuthService {
         user.setRole(Role.USER); // Default role USER at registration
         user.setEnabled(false); // Account is inactive by default, must be confirmed via OTP
 
-        return userRepository.save(user);
-    }
+        User savedUser = userRepository.save(user);
+
+        // ✅ Yeni: Kafka event-i burada göndəririk
+        UserRegisteredEventDTO event = new UserRegisteredEventDTO(
+                savedUser.getId().toString(),
+                savedUser.getEmail(),
+                UUID.randomUUID().toString(), // verificationToken (opsional)
+                java.time.LocalDateTime.now()
+        );
+
+        kafkaProducer.sendUserRegistrationEvent(event);
+        log.info("Kafka user registration event sent for user: {}", savedUser.getUsername());
+
+        return savedUser;    }
 
     /**
      * İstifadəçiyə OTP kodu göndərir.

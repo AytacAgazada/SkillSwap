@@ -2,6 +2,21 @@ spring:
   application:
     name: auth-service
 
+  kafka:
+    bootstrap-servers: localhost:9092 # Kafka Broker ünvanı
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        # TÖVSİYƏ: Notification Service'in DTO-nu tanıması üçün vacibdir
+        spring.json.add.type.headers: true
+
+kafka:
+  topic:
+    # Producer'in yayımlayacağı topic
+    user-registration-topic: user-registration-topic
+
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
