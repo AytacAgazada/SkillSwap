@@ -20,12 +20,12 @@ public class NotificationKafkaListener {
 
     @KafkaListener(topics = "notifications", groupId = "notification-service-group", containerFactory = "kafkaListenerContainerFactory")
     public void listen(NotificationEventDTO event) {
-        log.info("Received notification event: {}", event.getType());
+        log.info("Received Kafka notification event: type={} userId={}", event.getType(), event.getUserId());
         try {
             processor.process(event);
         } catch (Exception e) {
-            log.error("Error processing event: {}", event, e);
-            // In a real application, proper DLQ or retry logic would handle this exception
+            log.error("Error processing notification event: type={} userId={}", event.getType(), event.getUserId(), e);
+            // Production-ready: DLQ veya retry mekanizmi buraya əlavə edilməlidir
         }
     }
 }
