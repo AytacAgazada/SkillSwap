@@ -60,3 +60,6 @@ springdoc:
 
 server:
   port: 1115
+
+notification-service:
+  url: http://localhost:1114

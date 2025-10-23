@@ -36,6 +36,8 @@ public class Swap {
     // Əlaqədar SwapOfferEntity-nin ID-si (optional)
     private Long swapOfferId;
 
+    private LocalDateTime meetingDateTime;
+
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
 }

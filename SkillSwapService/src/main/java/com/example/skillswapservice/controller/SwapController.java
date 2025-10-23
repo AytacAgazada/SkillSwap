@@ -55,6 +55,16 @@ public class SwapController {
         return ResponseEntity.ok("Match request successfully sent. Event published.");
     }
 
+    @PostMapping("/{swapId}/accept")
+    public ResponseEntity<String> acceptSwap(
+            @RequestHeader("X-Auth-User-Id") UUID currentUserId,
+            @PathVariable Long swapId,
+            @Valid @RequestBody com.example.skillswapservice.dto.AcceptSwapRequest request) {
+
+        swapService.acceptSwap(swapId, currentUserId, request.getMeetingDateTime());
+        return ResponseEntity.ok("Swap successfully accepted and meeting time set.");
+    }
+
     @PostMapping("/complete/{swapId}")
     public ResponseEntity<String> completeSwap(
             @RequestHeader("X-Auth-User-Id") UUID currentUserId,

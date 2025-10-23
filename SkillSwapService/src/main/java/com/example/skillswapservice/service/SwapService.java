@@ -80,6 +80,12 @@ public class SwapService {
     }
 
     @Transactional
+    public void acceptSwap(Long swapId, UUID currentUserId, java.time.LocalDateTime meetingDateTime) {
+        log.info("Accepting swap {} by user {}. Meeting time: {}", swapId, currentUserId, meetingDateTime);
+        swapRepository.updateStatusAndMeetingTime(swapId, SwapStatus.ACCEPTED, meetingDateTime);
+    }
+
+    @Transactional
     public void completeSwap(Long swapId, UUID user1Id, UUID user2Id) {
         log.info("Completing swap {} between {} and {}", swapId, user1Id, user2Id);
 

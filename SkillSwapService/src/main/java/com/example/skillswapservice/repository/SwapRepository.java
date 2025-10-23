@@ -19,4 +19,11 @@ public interface SwapRepository extends JpaRepository<Swap, Long> {
     @Modifying
     @Query("UPDATE Swap s SET s.status = :status, s.updatedAt = CURRENT_TIMESTAMP WHERE s.id = :swapId")
     void updateStatus(@Param("swapId") Long swapId, @Param("status") SwapStatus status);
+
+    @Modifying
+    @Query("UPDATE Swap s SET s.status = :status, s.meetingDateTime = :meetingDateTime, s.updatedAt = CURRENT_TIMESTAMP WHERE s.id = :swapId")
+    void updateStatusAndMeetingTime(@Param("swapId") Long swapId, @Param("status") SwapStatus status, @Param("meetingDateTime") java.time.LocalDateTime meetingDateTime);
+
+    @Query("SELECT s FROM Swap s WHERE s.status = 'ACCEPTED' AND FUNCTION('DATE', s.meetingDateTime) = :date")
+    java.util.List<com.example.skillswapservice.entity.Swap> findSwapsForTomorrow(@Param("date") java.time.LocalDate date);
 }

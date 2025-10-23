@@ -22,15 +22,29 @@ public class NotificationProcessor {
     private final EmailSender emailSender;
     private final SimpMessagingTemplate webSocketTemplate;
     private final ObjectMapper mapper;
+    private final com.example.notificationservice.client.UserClient userClient;
 
     public NotificationProcessor(NotificationRepository repository,
                                  EmailSender emailSender,
                                  SimpMessagingTemplate webSocketTemplate,
-                                 ObjectMapper mapper) {
+                                 ObjectMapper mapper,
+                                 com.example.notificationservice.client.UserClient userClient) {
         this.repository = repository;
         this.emailSender = emailSender;
         this.webSocketTemplate = webSocketTemplate;
         this.mapper = mapper;
+        this.userClient = userClient;
+    }
+
+    public void processMeetingReminder(com.example.notificationservice.dto.MeetingReminderEvent event) {
+        com.example.notificationservice.dto.UserDTO user1 = userClient.getUserById(event.getUser1Id());
+        com.example.notificationservice.dto.UserDTO user2 = userClient.getUserById(event.getUser2Id());
+
+        String subject = "Meeting Reminder";
+        String body = String.format("Hi, this is a reminder for your meeting tomorrow at %s.", event.getMeetingDateTime().toString());
+
+        emailSender.sendEmail(user1.getEmail(), subject, body);
+        emailSender.sendEmail(user2.getEmail(), subject, body);
     }
 
     @Transactional
