@@ -1,8 +1,7 @@
-// build.gradle
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.1' // Stabil Spring Boot 3 versiyası
-    id 'io.spring.dependency-management' version '1.1.4' // Uyğun Dependency Management versiyası
+    id 'org.springframework.boot' version '3.2.1'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'com.example'
@@ -31,14 +30,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // ------------------- SECURITY (YENİ ƏLAVƏ EDİLDİ) -------------------
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+
+    // ------------------- SECURITY -------------------
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // ------------------- Service Discovery -------------------
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // ------------------- Documentation -------------------
-    // SpringDoc 3.x versiyasına uyğundur
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
     // ------------------- Utility -------------------
@@ -49,22 +49,14 @@ dependencies {
     // Kafka üçün (Asinxron Eventlər)
     implementation 'org.springframework.kafka:spring-kafka'
 
-    // ------------------- MATCHING / GEO-SPATIAL -------------------
-    // Spring Data Elasticsearch (Matching Engine üçün)
-    implementation 'org.springframework.data:spring-data-elasticsearch'
 
     // ------------------- TEST -------------------
-    // Kafka test dəstəyi üçün (optional, amma professional yanaşmadır)
     testImplementation 'org.springframework.kafka:spring-kafka-test'
-
-    // ------------------- Test Dependencies -------------------
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    // Security test dəstəyi üçün
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-// Spring Cloud versiyası Spring Boot 3.2.1-ə uyğun olmalıdır
 dependencyManagement {
     imports {
         mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2023.0.0'

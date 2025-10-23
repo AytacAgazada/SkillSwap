@@ -21,10 +21,10 @@ spring:
           predicates:
             - Path=/api/chat/history/**,/chat.sendMessage/**
 
-#        - id: appointment-service
-#          uri: http://localhost:9197
-#          predicates:
-#            - Path=/api/appointments/**
+        - id: skills-swap-service
+          uri: http://localhost:1115
+          predicates:
+            - Path=/api/skill-swap/**
 
 eureka:
   client:

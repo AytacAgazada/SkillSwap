@@ -1,7 +1,6 @@
-# src/main/resources/application.yml
 spring:
   application:
-    name: SkillSwapService
+    name: skill-swap-service
 
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
@@ -11,17 +10,34 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none # Yaln?z yoxlama üçün 'none', ?g?r ilkin DB konfiqurasiyas? varsa
+      ddl-auto: update # error verse bunu none et
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Spring Security-d?n g?l?n INFO loglar?n?n s?viyy?si
   security:
     filter:
       dispatch-types: async
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: true
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+swap-service:
+  kafka:
+    topics:
+      swap-completed: swap-completed-events
+      match-requested: match-requested-events
 
 eureka:
   client:
@@ -31,11 +47,10 @@ eureka:
 logging:
   level:
     com.example.skillswapservice: DEBUG
-    org.springframework.security: INFO # Spring Security loglar?
+    org.springframework.security: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 
-# SpringDoc OpenAPI (Swagger UI) Konfiqurasiyas?
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
