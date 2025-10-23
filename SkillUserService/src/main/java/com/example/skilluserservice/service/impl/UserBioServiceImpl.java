@@ -29,37 +29,30 @@ public class UserBioServiceImpl implements UserBioService {
     private final UserBioRepository userBioRepository;
     private final SkillRepository skillRepository;
     private final UserBioMapper userBioMapper;
-    private final AuthClient authClient; // Auth Service Feign client
+    private final AuthClient authClient;
 
     @Override
     @Transactional
-    public UserBioResponseDTO createUserBio(UserBioCreateDto userBioCreateDto) {
-        UUID authUserId = userBioCreateDto.getAuthUserId();
+    public UserBioResponseDTO createUserBio(UUID authUserId, UserBioCreateDto userBioCreateDto) {
+        if (userBioRepository.findByAuthUserId(authUserId).isPresent()) {
+            throw new InvalidInputException("User Bio with authUserId " + authUserId + " already exists. Only one bio is allowed.");
+        }
 
-        // 1️⃣ AuthService-də istifadəçi varlığını yoxlayırıq
         Boolean exists = authClient.doesUserExist(authUserId);
         if (exists == null || !exists) {
-            throw new InvalidInputException("Auth user with ID " + authUserId + " does not exist.");
+            throw new ResourceNotFoundException("Auth user with ID " + authUserId + " not found.");
         }
-
-        // 2️⃣ Role yoxlaması (USER olmalıdır)
         String role = authClient.getUserRole(authUserId);
         if (!"USER".equalsIgnoreCase(role)) {
-            throw new InvalidInputException("Auth user with ID " + authUserId + " is not a USER.");
-        }
-
-        // 3️⃣ UserBio artıq var mı yoxlayırıq
-        if (userBioRepository.findByAuthUserId(authUserId).isPresent()) {
-            throw new InvalidInputException("User Bio with authUserId " + authUserId + " already exists.");
+            throw new InvalidInputException("Auth user with ID " + authUserId + " is not authorized.");
         }
 
         UserBio userBio = userBioMapper.toEntity(userBioCreateDto);
+        userBio.setAuthUserId(authUserId);
 
-        // 4️⃣ Skills map-ləmək
         Set<Skill> skills = mapSkills(userBioCreateDto.getSkillIds());
         userBio.setSkills(skills);
 
-        // 5️⃣ Yaddaşa yazmaq
         UserBio saved = userBioRepository.save(userBio);
         log.info("Created UserBio for authUserId={}", authUserId);
 
@@ -89,34 +82,17 @@ public class UserBioServiceImpl implements UserBioService {
 
     @Override
     @Transactional
-    public UserBioResponseDTO updateUserBio(UserBioUpdateDTO updateDTO) {
-        UUID authUserId = updateDTO.getAuthUserId();
-
+    public UserBioResponseDTO updateUserBio(UUID authUserId, UserBioUpdateDTO updateDTO) {
         UserBio existing = userBioRepository.findById(updateDTO.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User Bio not found with id: " + updateDTO.getId()));
 
-        // Əgər authUserId dəyişirsə, yoxlayırıq
         if (!existing.getAuthUserId().equals(authUserId)) {
-            if (userBioRepository.findByAuthUserId(authUserId).isPresent()) {
-                throw new InvalidInputException("User Bio with authUserId " + authUserId + " already exists.");
-            }
-
-            // AuthService-də yoxlayırıq
-            Boolean exists = authClient.doesUserExist(authUserId);
-            if (exists == null || !exists) {
-                throw new InvalidInputException("Auth user with ID " + authUserId + " does not exist.");
-            }
-
-            String role = authClient.getUserRole(authUserId);
-            if (!"USER".equalsIgnoreCase(role)) {
-                throw new InvalidInputException("Auth user with ID " + authUserId + " is not a USER.");
-            }
+            log.error("Access Denied: User {} attempted to update UserBio id={}", authUserId, existing.getId());
+            throw new InvalidInputException("You are not authorized to update this user bio.");
         }
 
-        // Entity-ni DTO ilə yeniləyirik
         userBioMapper.updateEntityFromDto(updateDTO, existing);
 
-        // Skills yeniləmə
         Set<Skill> skills = mapSkills(updateDTO.getSkillIds());
         existing.setSkills(skills);
 
@@ -136,7 +112,16 @@ public class UserBioServiceImpl implements UserBioService {
         log.info("Deleted UserBio id={} for authUserId={}", existing.getId(), existing.getAuthUserId());
     }
 
-    // --- Helper method ---
+    @Override
+    @Transactional
+    public void deleteUserBioByAuthId(UUID authUserId) {
+        UserBio existing = userBioRepository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Bio not found with authUserId: " + authUserId));
+
+        userBioRepository.delete(existing);
+        log.info("Deleted UserBio id={} by Auth ID={}", existing.getId(), existing.getAuthUserId());
+    }
+
     private Set<Skill> mapSkills(Set<Long> skillIds) {
         if (skillIds == null || skillIds.isEmpty()) return Collections.emptySet();
 

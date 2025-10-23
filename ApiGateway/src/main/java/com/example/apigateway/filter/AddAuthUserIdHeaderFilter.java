@@ -58,11 +58,11 @@ public class AddAuthUserIdHeaderFilter implements GatewayFilterFactory<AddAuthUs
                     return exchange.getResponse().setComplete();
                 }
 
-                Long authUserId = Long.valueOf(String.valueOf(userIdObj));
+                String authUserId = String.valueOf(userIdObj);
 
                 // Header əlavə et
                 ServerWebExchange mutatedExchange = exchange.mutate()
-                        .request(r -> r.headers(h -> h.set("X-Auth-User-Id", String.valueOf(authUserId))))
+                        .request(r -> r.headers(h -> h.set("X-Auth-User-Id", authUserId)))
                         .build();
 
                 log.info("X-Auth-User-Id set to {}", authUserId);

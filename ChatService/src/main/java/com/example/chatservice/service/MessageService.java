@@ -25,20 +25,18 @@ public class MessageService {
     private final MessageMapper messageMapper;
     private final SkillUserClient skillUserClient;
 
-    /**
-     * Saves a message after validating sender and receiver exist in User Service.
-     * Also enriches the message with sender and receiver names.
-     */
+
     @Transactional
-    public MessageResponseDTO saveMessage(MessageRequestDTO dto) {
+    public MessageResponseDTO saveMessage(MessageRequestDTO dto, UUID authUserId) {
         // Validate sender and receiver exist
-        UserBioResponseDTO sender = fetchUser(dto.getSenderId());
+        UserBioResponseDTO sender = fetchUser(authUserId);
         UserBioResponseDTO receiver = fetchUser(dto.getReceiverId());
 
         // Map DTO to entity and save
         Message message = messageMapper.toEntity(dto);
+        message.setSenderId(authUserId);
         Message saved = messageRepository.save(message);
-        log.info("Saved message id={} from {} to {}", saved.getId(), dto.getSenderId(), dto.getReceiverId());
+        log.info("Saved message id={} from {} to {}", saved.getId(), authUserId, dto.getReceiverId());
 
         // Map entity to response DTO with sender/receiver names
         MessageResponseDTO responseDTO = messageMapper.toResponseDTO(saved);

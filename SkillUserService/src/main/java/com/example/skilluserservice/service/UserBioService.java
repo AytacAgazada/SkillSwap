@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface UserBioService {
 
-    UserBioResponseDTO createUserBio(UserBioCreateDto userBioCreateDto);
+    UserBioResponseDTO createUserBio(UUID authUserId, UserBioCreateDto userBioCreateDto); // 👈 Düzəliş
 
     UserBioResponseDTO getUserBioById(Long id);
 
@@ -17,7 +17,9 @@ public interface UserBioService {
 
     List<UserBioResponseDTO> getAllUserBios();
 
-    UserBioResponseDTO updateUserBio(UserBioUpdateDTO userBioUpdateDTO);
+    UserBioResponseDTO updateUserBio(UUID authUserId, UserBioUpdateDTO userBioUpdateDTO);
 
     void deleteUserBio(Long id);
+
+    void deleteUserBioByAuthId(UUID authUserId);
 }

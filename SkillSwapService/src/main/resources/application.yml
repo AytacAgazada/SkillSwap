@@ -1,0 +1,47 @@
+# src/main/resources/application.yml
+spring:
+  application:
+    name: SkillSwapService
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 16032005
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none # Yaln?z yoxlama üçün 'none', ?g?r ilkin DB konfiqurasiyas? varsa
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Spring Security-d?n g?l?n INFO loglar?n?n s?viyy?si
+  security:
+    filter:
+      dispatch-types: async
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+logging:
+  level:
+    com.example.skillswapservice: DEBUG
+    org.springframework.security: INFO # Spring Security loglar?
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+# SpringDoc OpenAPI (Swagger UI) Konfiqurasiyas?
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+
+server:
+  port: 1115
