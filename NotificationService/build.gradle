@@ -44,6 +44,7 @@ dependencies {
     // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     // Lombok (For DTOs and Models - @Data, @Builder)
     compileOnly 'org.projectlombok:lombok'

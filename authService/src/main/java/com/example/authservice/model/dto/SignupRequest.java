@@ -1,7 +1,10 @@
 package com.example.authservice.model.dto;
 
+import com.example.authservice.model.enumeration.Role;
 import com.example.authservice.validation.OneOfFieldsNotBlank;
 import com.example.authservice.validation.PasswordMatches;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -12,6 +15,7 @@ import lombok.Data;
 @PasswordMatches
 @OneOfFieldsNotBlank(fieldNames = {"email", "phone"}, message = "Email or Phone must be provided for communication.")
 public class SignupRequest {
+
     @NotBlank(message = "Username cannot be blank")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
@@ -38,7 +42,8 @@ public class SignupRequest {
     @Size(min = 10, max = 20, message = "Phone number must be between 10 and 20 characters")
     private String phone;
 
-    @Pattern(regexp = "^(USER|ADMIN|PROVIDER)$", message = "Role must be USER, ADMIN or PROVIDER")
-    private String role;
+//    @Pattern(regexp = "^(USER|ADMIN|PROVIDER)$", message = "Role must be USER, ADMIN or PROVIDER")
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
 }

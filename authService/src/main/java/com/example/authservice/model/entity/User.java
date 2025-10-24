@@ -20,7 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users",
+@Table(name = "skillAuthusers",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "username"),
                 @UniqueConstraint(columnNames = "fin"),
@@ -61,6 +61,10 @@ public class User implements UserDetails {
     private Instant createdAt = Instant.now();
 
     private Instant updatedAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer failedLoginAttempts = 0;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

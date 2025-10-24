@@ -86,4 +86,4 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 server:
-  port: 1111
+  port: 1110
