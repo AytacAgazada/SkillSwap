@@ -1,21 +1,18 @@
 package com.example.apigateway.filter;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys; // Yeni import
+import io.jsonwebtoken.io.Decoders; // Yeni import
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
 
-import java.security.Key;
+import java.security.Key; // Yeni import
 
 @Slf4j
 @Component
@@ -25,7 +22,8 @@ public class AddAuthUserIdHeaderFilter implements GatewayFilterFactory<AddAuthUs
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    // JWT secret Base64 → Key
+    // Secret key-i Base64 stringindən Key obyektinə çevirən metod
+    // Bu metod Auth Service-dəki JwtService-dəki getSignKey() metoduna bənzəməlidir.
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -35,48 +33,42 @@ public class AddAuthUserIdHeaderFilter implements GatewayFilterFactory<AddAuthUs
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                try {
+                    String token = authHeader.substring(7);
 
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                log.warn("Missing or invalid Authorization header");
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
-            }
+                    // JWT-ni parse etmək üçün YENİ SYNTAX
+                    Claims claims = Jwts.parserBuilder()
+                            .setSigningKey(getSignKey()) // Yeni metod çağırışı
+                            .build() // Builder-i build etmək lazımdır
+                            .parseClaimsJws(token)
+                            .getBody();
 
-            String token = authHeader.substring(7);
+                    // JWT payload-dan "userId" claim-ini Long olaraq oxuyun
+                    // Auth Service-də token yaradarkən "userId" claim-ini əlavə etdiyinizdən əmin olun.
+                    Long authUserId = claims.get("userId", Long.class);
 
-            try {
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(getSignKey())
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody();
-
-                Object userIdObj = claims.get("userId");
-                if (userIdObj == null) {
-                    log.warn("JWT token does not contain 'userId' claim");
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
+                    if (authUserId != null) {
+                        exchange = exchange.mutate()
+                                .request(r -> r.headers(headers -> headers.set("X-Auth-User-Id", String.valueOf(authUserId)))) // Long-u String-ə çevirin
+                                .build();
+                        log.info("X-Auth-User-Id header set to: {}", authUserId);
+                    } else {
+                        log.warn("JWT 'userId' claim is null or not found. X-Auth-User-Id header not set.");
+                        // Əgər userId claim-i yoxdursa, sorğunu bloklamaq istəyə bilərsiniz.
+                        // exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        // return exchange.getResponse().setComplete();
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse JWT in Gateway or extract userId claim: {}", e.getMessage());
+                    // Bu xəta halında sorğunu bloklamaq üçün:
+                    // exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    // return exchange.getResponse().setComplete();
                 }
-
-                String authUserId = String.valueOf(userIdObj);
-
-                // Header əlavə et
-                ServerWebExchange mutatedExchange = exchange.mutate()
-                        .request(r -> r.headers(h -> h.set("X-Auth-User-Id", authUserId)))
-                        .build();
-
-                log.info("X-Auth-User-Id set to {}", authUserId);
-                return chain.filter(mutatedExchange);
-
-            } catch (ExpiredJwtException e) {
-                log.warn("JWT token expired: {}", e.getMessage());
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
-            } catch (Exception e) {
-                log.error("Failed to parse JWT token: {}", e.getMessage());
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+            } else {
+                log.debug("No Authorization header or not Bearer token. Skipping X-Auth-User-Id filter.");
             }
+            return chain.filter(exchange);
         };
     }
 
@@ -91,6 +83,5 @@ public class AddAuthUserIdHeaderFilter implements GatewayFilterFactory<AddAuthUs
     }
 
     public static class Config {
-        // gələcəkdə əlavə konfiq parametrlər üçün boş class
     }
 }

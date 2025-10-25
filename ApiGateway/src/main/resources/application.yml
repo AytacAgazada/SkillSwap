@@ -26,6 +26,25 @@ spring:
           predicates:
             - Path=/api/skill-swaps/**
 
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://127.0.0.1:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*" # Bütün başlıqlara icazə ver
+            allowCredentials: true # Cookie və auth header-ləri kimi credential-ları ötürməyə icazə ver
+            maxAge: 3600 # Pre-flight (OPTIONS) sorğularının keşlənmə müddəti
+
+
 eureka:
   client:
    serviceUrl:
