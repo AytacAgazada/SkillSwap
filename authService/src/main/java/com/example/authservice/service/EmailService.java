@@ -33,4 +33,20 @@ public class EmailService {
             throw new RuntimeException("Email göndərilərkən xəta baş verdi: " + e.getMessage());
         }
     }
+
+    @Async("taskExecutor")
+    public void sendTestEmail(String to) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject("Test Email from SkillSwap");
+            helper.setText("This is a test email from SkillSwap.", false);
+            mailSender.send(message);
+            log.info("Test email sent successfully to: {}", to);
+        } catch (MessagingException e) {
+            log.error("Failed to send test email to {}: {}", to, e.getMessage());
+            throw new RuntimeException("Test email göndərilərkən xəta baş verdi: " + e.getMessage());
+        }
+    }
 }

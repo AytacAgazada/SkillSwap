@@ -4,12 +4,14 @@ import com.example.authservice.exception.TokenRefreshException;
 import com.example.authservice.model.entity.RefreshToken;
 import com.example.authservice.model.entity.User;
 import com.example.authservice.repository.RefreshTokenRepository;
+import com.example.authservice.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Key;
 import java.time.Instant;
@@ -31,9 +33,11 @@ public class JwtUtils {
     private long refreshTokenExpirationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
 
-    public JwtUtils(RefreshTokenRepository refreshTokenRepository) {
+    public JwtUtils(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
+        this.userRepository = userRepository;
     }
 
     // JWT imzalama açarını BASE64 formatdan deşifrə edirik
@@ -83,12 +87,11 @@ public class JwtUtils {
     }
 
     // Refresh token yaratmaq və verilənlər bazasına qeyd etmək
-    public RefreshToken createRefreshToken(User user, String userAgent, String ipAddress) {
+    public RefreshToken createRefreshToken(User user, String ipAddress) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(UUID.randomUUID().toString())
                 .expiryDate(Instant.now().plusMillis(refreshTokenExpirationMs))
-                .userAgent(userAgent)
                 .ipAddress(ipAddress)
                 .build();
         return refreshTokenRepository.save(refreshToken);
@@ -118,5 +121,12 @@ public class JwtUtils {
 
     public long getRefreshTokenExpirationMs() {
         return refreshTokenExpirationMs;
+    }
+
+    @Transactional // Tranzaksiya üçün
+    public void deleteByUserId(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new RuntimeException("User not found for deletion of refresh tokens"));
+        refreshTokenRepository.deleteByUser(user);
     }
 }

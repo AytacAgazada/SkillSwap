@@ -197,4 +197,15 @@ public class AuthController {
                     return new ResourceNotFoundException("Auth User with ID " + userId + " not found.");
                 });
     }
+
+    @Operation(summary = "Send test email", description = "Sends a test email to the specified email address.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Test email sent successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid email address")
+    })
+    @PostMapping("/test-email")
+    public ResponseEntity<String> sendTestEmail(@RequestParam String email) {
+        authService.sendTestEmail(email);
+        return ResponseEntity.ok("Test email sent successfully to " + email);
+    }
 }

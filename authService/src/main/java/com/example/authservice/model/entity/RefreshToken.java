@@ -30,8 +30,5 @@ public class RefreshToken {
     private Instant expiryDate;
 
     @Column(nullable = false)
-    private String userAgent;
-
-    @Column(nullable = false)
     private String ipAddress;
 }

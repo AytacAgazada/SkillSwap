@@ -1,18 +1,10 @@
 package com.example.authservice.service;
 
-import com.example.authservice.exception.InvalidCredentialsException;
-import com.example.authservice.exception.UserAlreadyExistsException;
-import com.example.authservice.exception.TokenRefreshException;
-import com.example.authservice.exception.OtpException;
+import com.example.authservice.exception.*;
 import com.example.authservice.kafka.KafkaAuthProducer;
 import com.example.authservice.kafka.UserRegisteredEventDTO;
 import com.example.authservice.mapper.UserMapper;
-import com.example.authservice.model.dto.LoginRequest;
-import com.example.authservice.model.dto.AuthResponse;
-import com.example.authservice.model.dto.SignupRequest;
-import com.example.authservice.model.dto.OtpSendRequest;
-import com.example.authservice.model.dto.OtpVerificationRequest;
-import com.example.authservice.model.dto.ResetPasswordRequest;
+import com.example.authservice.model.dto.*;
 import com.example.authservice.model.entity.ConfirmationToken;
 import com.example.authservice.model.entity.RefreshToken;
 import com.example.authservice.model.entity.User;
@@ -194,15 +186,14 @@ public class AuthService {
         }
 
         if (otpVerificationRequest.getOtpType().equalsIgnoreCase("ACCOUNT_CONFIRMATION")) {
-            user.setEnabled(true); // Activate account
+            user.setEnabled(true);
             userRepository.save(user);
             confirmationToken.setConfirmedAt(Instant.now());
-            confirmationToken.setUsed(true); // Mark OTP as used
+            confirmationToken.setUsed(true); // Account confirmation: Mark OTP as used
             confirmationTokenRepository.save(confirmationToken);
             log.info("Account confirmation successful for user: {}", user.getFin());
         } else if (otpVerificationRequest.getOtpType().equalsIgnoreCase("PASSWORD_RESET")) {
             confirmationToken.setConfirmedAt(Instant.now());
-            confirmationToken.setUsed(true); // Mark OTP as used
             confirmationTokenRepository.save(confirmationToken);
             log.info("Password Reset OTP verified for user: {}", user.getFin());
         } else {
@@ -216,31 +207,46 @@ public class AuthService {
      * @param request Yeni şifrə və OTP kodu
      */
     @Transactional
-    public void resetPassword(ResetPasswordRequest request) {
-        if (!request.getNewPassword().equals(request.getNewPasswordConfirmation())) {
-            throw new OtpException("New passwords do not match.");
-        }
+    public UserResponseDTO resetPassword(ResetPasswordRequest request) {
+        log.info("Attempting to reset password for identifier: {}", request.getIdentifier());
 
-        User user = findUserByIdentifier(request.getIdentifier());
+        User user = userRepository.findByEmail(request.getIdentifier())
+                .orElseGet(() -> userRepository.findByUsername(request.getIdentifier())
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found with identifier: " + request.getIdentifier())));
 
-        ConfirmationToken confirmationToken = confirmationTokenRepository
+        // ✅ DÜZƏLİŞ 1: Təsdiqlənmiş OTP-ni yoxlamaq
+        ConfirmationToken verifiedToken = confirmationTokenRepository
                 .findByTokenAndTypeAndUsedFalseAndExpiresAtAfter(
-                        request.getOtpCode(),
-                        "PASSWORD_RESET",
-                        Instant.now())
-                .orElseThrow(() -> new OtpException("Password reset OTP code is invalid, expired, or already used. Please try again."));
+                request.getOtpCode(), // DTO-dan birbaşa otpCode-u götürürük
+                "PASSWORD_RESET",
+                Instant.now())
+                .orElseThrow(() -> new OtpException("Password reset authorization is invalid, expired, or has already been used."));
 
-        if (!Objects.equals(confirmationToken.getUser().getId(), user.getId())) {
+        // İstifadəçi tokenin sahibidir?
+        if (!Objects.equals(verifiedToken.getUser().getId(), user.getId())) {
             throw new OtpException("This OTP code belongs to another user.");
         }
+        // ✅ DÜZƏLİŞ 2: Təkrar istifadənin qarşısını almaq
+        // Tokeni tamamilə silmək və ya bir daha istifadə olunmaması üçün xüsusi bir sahə təyin etmək.
+        // Ən sadə həlli: istifadə olunduqdan sonra onu silmək.
+        confirmationTokenRepository.delete(verifiedToken);
 
+        // Şifrəni yenilə
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setUpdatedAt(Instant.now());
         userRepository.save(user);
+        log.info("Password for user '{}' reset successfully.", user.getUsername());
 
-        confirmationToken.setUsed(true);
-        confirmationTokenRepository.save(confirmationToken);
-        log.info("Password successfully reset for user: {}", user.getFin());
+        // Refresh tokenləri ləğv et
+        jwtUtils.deleteByUserId(user.getId());
+        log.info("All refresh tokens for user '{}' deleted after password reset.", user.getUsername());
+
+        return UserResponseDTO.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .fin(user.getFin())
+                .role(Role.valueOf(user.getRole().name()))
+                .build();
     }
 
     /**
@@ -268,16 +274,15 @@ public class AuthService {
 
         String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
 
-        String userAgent = request.getHeader("User-Agent");
         String ipAddress = request.getRemoteAddr();
 
-        RefreshToken refreshToken = refreshTokenRepository.findByUserAndUserAgent(user, userAgent)
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
                 .map(existingToken -> {
                     existingToken.setExpiryDate(Instant.now().plusMillis(jwtUtils.getRefreshTokenExpirationMs()));
                     existingToken.setIpAddress(ipAddress);
                     return refreshTokenRepository.save(existingToken);
                 })
-                .orElseGet(() -> jwtUtils.createRefreshToken(user, userAgent, ipAddress));
+                .orElseGet(() -> jwtUtils.createRefreshToken(user, ipAddress));
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -309,13 +314,12 @@ public class AuthService {
 
         User user = refreshToken.getUser();
 
-        String currentUserAgent = request.getHeader("User-Agent");
         String currentIpAddress = request.getRemoteAddr();
 
-        // Check if refresh token is used from a different device or IP
-        if (!refreshToken.getUserAgent().equals(currentUserAgent) || !refreshToken.getIpAddress().equals(currentIpAddress)) {
+        // Check if refresh token is used from a different IP
+        if (!refreshToken.getIpAddress().equals(currentIpAddress)) {
             refreshTokenRepository.delete(refreshToken); // Delete suspicious token
-            throw new TokenRefreshException(requestRefreshToken, "Refresh token used from a different device or IP address!");
+            throw new TokenRefreshException(requestRefreshToken, "Refresh token used from a different IP address!");
         }
 
         String newAccessToken = jwtUtils.generateTokenFromUsername(user.getFin());
@@ -377,5 +381,9 @@ public class AuthService {
     private String generateOtpCode() {
         Random random = new Random();
         return String.format("%06d", random.nextInt(999999));
+    }
+
+    public void sendTestEmail(String email) {
+        emailService.sendTestEmail(email);
     }
 }
