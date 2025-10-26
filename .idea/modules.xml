@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/SkillSwap.iml" filepath="$PROJECT_DIR$/.idea/SkillSwap.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/SkillSwapService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/SkillSwapService.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/SkillUserService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/SkillUserService.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/authService.iml" filepath="$PROJECT_DIR$/.idea/modules/authService.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/authService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/authService.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.authService.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.authService.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.authService.test.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.authService.test.iml" />
