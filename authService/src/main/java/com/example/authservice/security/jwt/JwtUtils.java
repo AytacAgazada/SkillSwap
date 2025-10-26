@@ -87,12 +87,13 @@ public class JwtUtils {
     }
 
     // Refresh token yaratmaq və verilənlər bazasına qeyd etmək
-    public RefreshToken createRefreshToken(User user, String ipAddress) {
+    public RefreshToken createRefreshToken(User user, String ipAddress, String userAgent) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(UUID.randomUUID().toString())
                 .expiryDate(Instant.now().plusMillis(refreshTokenExpirationMs))
                 .ipAddress(ipAddress)
+                .userAgent(userAgent)
                 .build();
         return refreshTokenRepository.save(refreshToken);
     }

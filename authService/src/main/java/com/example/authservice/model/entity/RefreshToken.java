@@ -31,4 +31,8 @@ public class RefreshToken {
 
     @Column(nullable = false)
     private String ipAddress;
+
+    @Column(nullable = false)
+    private String userAgent;
+
 }
