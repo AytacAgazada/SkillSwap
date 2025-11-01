@@ -4,14 +4,11 @@
     <annotationProcessing>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
-        <option name="lombok.addLombokGeneratedAnnotation" value="true" />
-        <option name="mapstruct.defaultComponentModel" value="spring" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.32/17d46b3e205515e1e8efd3ee4d57ce8018914163/lombok-1.18.32.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.mapstruct/mapstruct-processor/1.5.5.Final/897f6f115930b936287bef552bf5fe28cc64717d/mapstruct-processor-1.5.5.Final.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok-mapstruct-binding/0.2.0/2f1cf9ced7b720ba4996c942b816669e63f0fa4f/lombok-mapstruct-binding-0.2.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.30/f195ee86e6c896ea47a1d39defbe20eb59cd149d/lombok-1.18.30.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.mapstruct/mapstruct-processor/1.5.3.Final/dce418bedafd71ff8dd2cef15006c0fee788b073/mapstruct-processor-1.5.3.Final.jar" />
         </processorPath>
-        <module name="com.example.authService.main" />
+        <module name="GamificationService.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -28,9 +25,15 @@
       <module name="ChatService" options="-parameters" />
       <module name="ChatService.main" options="-parameters" />
       <module name="ChatService.test" options="-parameters" />
+      <module name="CommunityService" options="-parameters" />
+      <module name="CommunityService.main" options="-parameters" />
+      <module name="CommunityService.test" options="-parameters" />
       <module name="EurekaService" options="-parameters" />
       <module name="EurekaService.main" options="-parameters" />
       <module name="EurekaService.test" options="-parameters" />
+      <module name="GamificationService" options="-parameters" />
+      <module name="GamificationService.main" options="-parameters" />
+      <module name="GamificationService.test" options="-parameters" />
       <module name="NotificationService" options="-parameters" />
       <module name="NotificationService.main" options="-parameters" />
       <module name="NotificationService.test" options="-parameters" />

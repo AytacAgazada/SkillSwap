@@ -5,7 +5,9 @@
     <file type="web" url="file://$PROJECT_DIR$/ApiGateway" />
     <file type="web" url="file://$PROJECT_DIR$/authService" />
     <file type="web" url="file://$PROJECT_DIR$/ChatService" />
+    <file type="web" url="file://$PROJECT_DIR$/CommunityService" />
     <file type="web" url="file://$PROJECT_DIR$/EurekaService" />
+    <file type="web" url="file://$PROJECT_DIR$/GamificationService" />
     <file type="web" url="file://$PROJECT_DIR$/NotificationService" />
     <file type="web" url="file://$PROJECT_DIR$/SkillSwapService" />
     <file type="web" url="file://$PROJECT_DIR$/SkillUserService" />
