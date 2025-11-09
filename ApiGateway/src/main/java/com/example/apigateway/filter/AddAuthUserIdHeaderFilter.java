@@ -46,7 +46,7 @@ public class AddAuthUserIdHeaderFilter implements GatewayFilterFactory<AddAuthUs
 
                     // JWT payload-dan "userId" claim-ini Long olaraq oxuyun
                     // Auth Service-də token yaradarkən "userId" claim-ini əlavə etdiyinizdən əmin olun.
-                    Long authUserId = claims.get("userId", Long.class);
+                    String authUserId = claims.get("userId", String.class);
 
                     if (authUserId != null) {
                         exchange = exchange.mutate()

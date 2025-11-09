@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/skil-swaps")
+@RequestMapping("/api/skill-swaps")
 @RequiredArgsConstructor
 public class SwapController {
 

@@ -1,0 +1,25 @@
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--orange-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-switcher:hover {
+  border-color: var(--orange-primary);
+  background-color: var(--bg-tertiary);
+  transform: scale(1.05);
+}
+
+.theme-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+

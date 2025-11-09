@@ -47,9 +47,10 @@ public class JwtUtils {
     }
 
     // Access token yaratmaq
-    public String generateTokenFromUsername(String username) {
+    public String generateTokenFromUser(User user) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getFin())
+                .claim("userId", user.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)

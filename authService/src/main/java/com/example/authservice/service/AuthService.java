@@ -236,7 +236,9 @@ public class AuthService {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
+        
+
+        String jwt = jwtUtils.generateTokenFromUser(user);
 
         String ipAddress = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
@@ -288,7 +290,7 @@ public class AuthService {
             throw new TokenRefreshException(requestRefreshToken, "Refresh token used from a different IP address!");
         }
 
-        String newAccessToken = jwtUtils.generateTokenFromUsername(user.getFin());
+        String newAccessToken = jwtUtils.generateTokenFromUser(user);
 
         refreshToken.setExpiryDate(Instant.now().plusMillis(jwtUtils.getRefreshTokenExpirationMs()));
         refreshTokenRepository.save(refreshToken);

@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # INFRASTRUCTURE
   eureka-server:
@@ -143,7 +141,7 @@ services:
   gamification-service:
     build: ./GamificationService
     ports:
-      - "1115:1115"
+      - "1111:1111"
     depends_on:
       - eureka-server
       - mongodb
@@ -151,7 +149,7 @@ services:
       - SPRING_APPLICATION_NAME=gamification-service
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/skillswap-gamification
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
-      - SERVER_PORT=1115
+      - SERVER_PORT=1111
     networks:
       - skillswap-net
 
