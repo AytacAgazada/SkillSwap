@@ -20,19 +20,25 @@ spring:
           uri: http://localhost:1113
           predicates:
             - Path=/api/chat/history/**,/chat.sendMessage/**
-
         - id: skills-swap-service
           uri: http://localhost:1115
           predicates:
             - Path=/api/skill-swaps/**
-
+        - id: gamification-service
+          uri: http://localhost:1111
+          predicates:
+            - Path=/api/notifications/**
+        - id: community-service
+          uri: http://localhost:1116
+          predicates:
+            - Path=/community/**
 
       globalcors:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:5173"
-              - "http://127.0.0.1:5173"
+              - "http://localhost:3000"
+              - "http://127.0.0.1:3000"
             allowedMethods:
               - GET
               - POST
