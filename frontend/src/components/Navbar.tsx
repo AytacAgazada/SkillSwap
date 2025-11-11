@@ -35,11 +35,10 @@ const Navbar = () => {
               <>
                 <li><Link to="/dashboard">{t('dashboard')}</Link></li>
                 <li><Link to="/profile">{t('profile')}</Link></li>
-                <li><Link to="/swap-offers">Mübadilə</Link></li>
-                <li><Link to="/chat">Chat</Link></li>
-                <li><Link to="/community">İctimaiyyət</Link></li>
-                <li><Link to="/gamification">Gamification</Link></li>
-                
+                <li><Link to="/swap-offers">{t('exchanges')}</Link></li>
+                <li><Link to="/chat">{t('messages')}</Link></li>
+                <li><Link to="/community">{t('groups')}</Link></li>
+                <li><Link to="/gamification">{t('gamification')}</Link></li>
                 <li className="user-info">
                   <span className="username">{user?.username}</span>
                 </li>

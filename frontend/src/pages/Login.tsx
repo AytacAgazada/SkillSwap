@@ -147,8 +147,8 @@ const Login = () => {
     try {
       await authService.sendOtp({
         identifier: resetData.email,
-        sendMethod: 'EMAIL',
-        purpose: 'PASSWORD_RESET'
+        sendMethod: 'email',
+        otpType: 'PASSWORD_RESET'
       })
       setResetSuccess('OTP kodunuz email-ə göndərildi')
       setResetStep('otp')
@@ -167,7 +167,7 @@ const Login = () => {
       await authService.verifyOtp({
         identifier: resetData.email,
         otpCode: resetData.otpCode,
-        purpose: 'PASSWORD_RESET'
+        otpType: 'PASSWORD_RESET'
       })
       setResetStep('newPassword')
     } catch (err: any) {

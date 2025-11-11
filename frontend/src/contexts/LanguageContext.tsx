@@ -19,6 +19,10 @@ const translations: Translations = {
   dashboard: { az: 'Panel', tr: 'Panel', en: 'Dashboard', ru: 'Панель' },
   profile: { az: 'Profil', tr: 'Profil', en: 'Profile', ru: 'Профиль' },
   welcome: { az: 'Xoş Gəlmisiniz', tr: 'Hoş Geldiniz', en: 'Welcome', ru: 'Добро пожаловать' },
+  exchanges: { az: 'Mübadilələr', tr: 'Değişimler', en: 'Exchanges', ru: 'Обмены' },
+  messages: { az: 'Mesajlar', tr: 'Mesajlar', en: 'Messages', ru: 'Сообщения' },
+  groups: { az: 'Qruplar', tr: 'Gruplar', en: 'Groups', ru: 'Группы' },
+  gamification: { az: 'Gamifikasiya', tr: 'Oyunlaştırma', en: 'Gamification', ru: 'Геймификация' },
   // Add more translations as needed
 };
 

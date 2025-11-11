@@ -13,7 +13,7 @@ import Profile from './pages/Profile'
 import SwapOffers from './pages/SwapOffers'
 import Chat from './pages/Chat'
 import Community from './pages/Community'
-import Gamification from './pages/Gamification.tsx'
+import Gamification from './pages/Gamification'
 import './App.css'
 
 function App() {

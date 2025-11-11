@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
 
   const handleLogout = async () => {

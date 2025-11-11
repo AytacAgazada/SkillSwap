@@ -142,14 +142,26 @@ const Register = () => {
     try {
       await signup(formData)
       // After signup, send OTP
-      if (formData.email) {
-        await authService.sendOtp({
-          identifier: formData.email,
-          sendMethod: 'EMAIL',
-          purpose: 'ACCOUNT_CONFIRMATION'
-        })
-        setStep('otp')
-        setSuccess('OTP kodunuz email-ə göndərildi')
+      const identifier = formData.email || formData.phone || formData.fin
+      if (identifier) {
+        try {
+          await authService.sendOtp({
+            identifier: identifier,
+            sendMethod: formData.email ? 'email' : 'phone',
+            otpType: 'ACCOUNT_CONFIRMATION'
+          })
+          setStep('otp')
+          setSuccess(
+            formData.email 
+              ? 'OTP kodunuz email-ə göndərildi' 
+              : 'OTP kodunuz telefon nömrəsinə göndərildi'
+          )
+        } catch (otpErr: any) {
+          // If OTP send fails, still show success for signup but with warning
+          setError(otpErr.message || 'Qeydiyyat uğurlu oldu, amma OTP göndərilə bilmədi. Zəhmət olmasa giriş edin və OTP tələb edin.')
+        }
+      } else {
+        setError('Email və ya telefon nömrəsi daxil edilməlidir')
       }
     } catch (err: any) {
       setError(err.message || 'Qeydiyyat zamanı xəta baş verdi')
@@ -168,7 +180,7 @@ const Register = () => {
       await authService.verifyOtp({
         identifier,
         otpCode,
-        purpose: 'ACCOUNT_CONFIRMATION'
+        otpType: 'ACCOUNT_CONFIRMATION'
       })
       setSuccess('Hesabınız uğurla təsdiqləndi! İndi giriş edə bilərsiniz.')
       // Redirect to login after 2 seconds
@@ -190,8 +202,8 @@ const Register = () => {
       const identifier = formData.email || formData.phone || ''
       await authService.sendOtp({
         identifier,
-        sendMethod: formData.email ? 'EMAIL' : 'PHONE',
-        purpose: 'ACCOUNT_CONFIRMATION'
+        sendMethod: formData.email ? 'email' : 'phone',
+        otpType: 'ACCOUNT_CONFIRMATION'
       })
       setSuccess('OTP kodunuz yenidən göndərildi')
     } catch (err: any) {

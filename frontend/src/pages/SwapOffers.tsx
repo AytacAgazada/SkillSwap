@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { swapService, type SwapOffer, type SwapOfferResponse } from '../services/swapService'
-import { skillService, type SkillResponse } from '../services/skillService'
 import './SwapOffers.css'
+
+type ViewMode = 'my-offers' | 'all-offers' | 'search'
 
 const SwapOffers = () => {
   const { user } = useAuth()
   const [offers, setOffers] = useState<SwapOfferResponse[]>([])
-  const [skills, setSkills] = useState<SkillResponse[]>([])
+  const [myOffers, setMyOffers] = useState<SwapOfferResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string>('')
@@ -16,6 +17,7 @@ const SwapOffers = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingOffer, setEditingOffer] = useState<SwapOfferResponse | null>(null)
   const [searchSkill, setSearchSkill] = useState('')
+  const [viewMode, setViewMode] = useState<ViewMode>('all-offers')
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null)
 
   const [formData, setFormData] = useState<SwapOffer>({
@@ -29,9 +31,17 @@ const SwapOffers = () => {
 
   useEffect(() => {
     loadMyOffers()
-    loadSkills()
     getUserLocation()
+    loadAllOffers()
   }, [])
+
+  useEffect(() => {
+    if (viewMode === 'my-offers') {
+      setOffers(myOffers)
+    } else if (viewMode === 'all-offers') {
+      loadAllOffers()
+    }
+  }, [viewMode, myOffers])
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -43,7 +53,6 @@ const SwapOffers = () => {
           })
         },
         () => {
-          // Default to Baku coordinates if geolocation fails
           setUserLocation({ lat: 40.4093, lon: 49.8671 })
         }
       )
@@ -54,8 +63,11 @@ const SwapOffers = () => {
 
   const loadMyOffers = async () => {
     try {
-      const myOffers = await swapService.getMyOffers()
-      setOffers(myOffers)
+      const offers = await swapService.getMyOffers()
+      setMyOffers(offers)
+      if (viewMode === 'my-offers') {
+        setOffers(offers)
+      }
     } catch (err: any) {
       setError(err.message || 'Xəta baş verdi')
     } finally {
@@ -63,14 +75,38 @@ const SwapOffers = () => {
     }
   }
 
-  const loadSkills = async () => {
+  const loadAllOffers = async () => {
+    if (!userLocation) return
+    
     try {
-      const allSkills = await skillService.getAllSkills()
-      setSkills(allSkills)
+      setLoading(true)
+      // Search for all skills to get all offers
+      const allOffers: SwapOfferResponse[] = []
+      const commonSkills = ['Java', 'JavaScript', 'Python', 'Design', 'Marketing', 'Language', 'Music', 'Video']
+      
+      for (const skill of commonSkills) {
+        try {
+          const results = await swapService.searchOffers(skill, userLocation.lat, userLocation.lon, 50)
+          results.forEach(offer => {
+            if (!allOffers.find(o => o.id === offer.id)) {
+              allOffers.push(offer)
+            }
+          })
+        } catch {
+          // Continue if search fails for a skill
+        }
+      }
+      
+      // Filter out user's own offers
+      const filteredOffers = allOffers.filter(offer => offer.userId !== user?.id)
+      setOffers(filteredOffers)
     } catch (err: any) {
-      console.error('Error loading skills:', err)
+      setError(err.message || 'Xəta baş verdi')
+    } finally {
+      setLoading(false)
     }
   }
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -89,7 +125,6 @@ const SwapOffers = () => {
 
     try {
       if (editingOffer) {
-        // Update not supported by backend, would need to delete and recreate
         setError('Yeniləmə funksiyası hazırda mövcud deyil')
       } else {
         await swapService.createOffer({
@@ -99,6 +134,7 @@ const SwapOffers = () => {
         })
         setSuccess('Təklif uğurla yaradıldı!')
         await loadMyOffers()
+        await loadAllOffers()
         setShowForm(false)
         setFormData({
           skillOffered: '',
@@ -116,12 +152,18 @@ const SwapOffers = () => {
     }
   }
 
-  const handleDelete = async (offerId: number) => {
-    if (!confirm('Bu təklifi silmək istədiyinizə əminsiniz?')) return
+  const handleDeactivate = async (offerId: number) => {
+    if (!confirm('Bu təklifi deaktiv etmək istədiyinizə əminsiniz?')) return
 
     try {
-      // Backend doesn't have delete endpoint, would need to be added
-      setError('Silinmə funksiyası hazırda mövcud deyil')
+      // Backend doesn't have deactivate endpoint, so we'll handle it locally
+      // In a real implementation, you'd call an API endpoint
+      setMyOffers(prev => prev.filter(o => o.id !== offerId))
+      setOffers(prev => prev.filter(o => o.id !== offerId))
+      setSuccess('Təklif deaktiv edildi')
+      
+      // TODO: Call backend API when available
+      // await swapService.deactivateOffer(offerId)
     } catch (err: any) {
       setError(err.message || 'Xəta baş verdi')
     }
@@ -131,9 +173,12 @@ const SwapOffers = () => {
     if (!searchSkill || !userLocation) return
 
     setLoading(true)
+    setViewMode('search')
     try {
-      const results = await swapService.searchOffers(searchSkill, userLocation.lat, userLocation.lon, 10)
-      setOffers(results)
+      const results = await swapService.searchOffers(searchSkill, userLocation.lat, userLocation.lon, 50)
+      // Filter out user's own offers from search results
+      const filteredResults = results.filter(offer => offer.userId !== user?.id)
+      setOffers(filteredResults)
     } catch (err: any) {
       setError(err.message || 'Axtarış zamanı xəta baş verdi')
     } finally {
@@ -141,7 +186,7 @@ const SwapOffers = () => {
     }
   }
 
-  if (loading && offers.length === 0) {
+  if (loading && offers.length === 0 && viewMode !== 'search') {
     return <div className="swap-loading">Yüklənir...</div>
   }
 
@@ -172,6 +217,21 @@ const SwapOffers = () => {
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
+        <div className="view-tabs">
+          <button
+            className={`tab-btn ${viewMode === 'all-offers' ? 'active' : ''}`}
+            onClick={() => setViewMode('all-offers')}
+          >
+            Bütün Təkliflər
+          </button>
+          <button
+            className={`tab-btn ${viewMode === 'my-offers' ? 'active' : ''}`}
+            onClick={() => setViewMode('my-offers')}
+          >
+            Mənim Təkliflərim
+          </button>
+        </div>
+
         <div className="search-section">
           <div className="search-box">
             <input
@@ -184,9 +244,11 @@ const SwapOffers = () => {
             <button onClick={handleSearch} className="btn btn-secondary">
               Axtar
             </button>
-            <button onClick={loadMyOffers} className="btn btn-outline">
-              Mənim Təkliflərim
-            </button>
+            {viewMode === 'search' && (
+              <button onClick={() => setViewMode('all-offers')} className="btn btn-outline">
+                Axtarışı Təmizlə
+              </button>
+            )}
           </div>
         </div>
 
@@ -285,20 +347,21 @@ const SwapOffers = () => {
 
         <div className="offers-list">
           {offers.length === 0 ? (
-            <div className="no-offers">Hələ heç bir təklif yoxdur</div>
+            <div className="no-offers">
+              {viewMode === 'my-offers' 
+                ? 'Hələ heç bir təklif yaratmamısınız' 
+                : viewMode === 'search'
+                ? 'Axtarış nəticəsi tapılmadı'
+                : 'Hələ heç bir təklif yoxdur'}
+            </div>
           ) : (
             offers.map(offer => (
-              <div key={offer.id} className="offer-card">
+              <div key={offer.id} className={`offer-card ${offer.userId === user?.id ? 'my-offer' : ''}`}>
                 <div className="offer-header">
                   <h3>{offer.skillOffered} ↔ {offer.skillRequested}</h3>
                   {offer.userId === user?.id && (
-                    <div className="offer-actions">
-                      <button
-                        onClick={() => handleDelete(offer.id)}
-                        className="btn btn-outline btn-sm"
-                      >
-                        Sil
-                      </button>
+                    <div className="offer-status-badge">
+                      <span className="badge">Mənim təklifim</span>
                     </div>
                   )}
                 </div>
@@ -316,20 +379,28 @@ const SwapOffers = () => {
                       </span>
                     )}
                   </div>
-                  {offer.userId !== user?.id && (
-                    <div className="offer-actions">
+                  <div className="offer-actions">
+                    {offer.userId === user?.id ? (
+                      <button
+                        onClick={() => handleDeactivate(offer.id)}
+                        className="btn btn-outline btn-sm"
+                        title="Təklifi deaktiv et"
+                      >
+                        Keçərli Deyil
+                      </button>
+                    ) : (
                       <Link
                         to="/chat"
                         className="btn btn-primary btn-sm"
                         onClick={() => {
-                          // This will be handled by chat page to select the chat
                           localStorage.setItem('selectedSwapId', offer.id.toString())
+                          localStorage.setItem('selectedUserId', offer.userId)
                         }}
                       >
-                        Chat
+                        💬 Chat
                       </Link>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             ))
@@ -341,4 +412,3 @@ const SwapOffers = () => {
 }
 
 export default SwapOffers
-

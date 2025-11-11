@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { chatService, type ChatMessage } from '../services/chatService'
 import { swapService, type SwapOfferResponse } from '../services/swapService'
-import { userBioService, type UserBioResponse } from '../services/userBioService'
+import { userBioService } from '../services/userBioService'
+import { websocketService, type MessageResponse } from '../services/websocketService'
 import './Chat.css'
 
 interface ChatListItem {
@@ -34,18 +35,117 @@ const Chat = () => {
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const [searching, setSearching] = useState(false)
+  const [isConnected, setIsConnected] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const statusIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (user?.id) {
       loadChatList()
+      // Connect to WebSocket
+      websocketService.connect(
+        user.id,
+        () => {
+          console.log('WebSocket connected')
+          setIsConnected(true)
+        },
+        (error) => {
+          console.error('WebSocket connection error:', error)
+          setError('WebSocket bağlantısı qurula bilmədi')
+          setIsConnected(false)
+        }
+      )
+      
+      // Check connection status periodically
+      statusIntervalRef.current = setInterval(() => {
+        setIsConnected(websocketService.getConnectionStatus())
+      }, 1000)
+    }
+
+    return () => {
+      // Disconnect on unmount
+      websocketService.disconnect()
+      if (statusIntervalRef.current) {
+        clearInterval(statusIntervalRef.current)
+        statusIntervalRef.current = null
+      }
     }
   }, [user])
+
+  useEffect(() => {
+    // Check if there's a selected userId from SwapOffers
+    const selectedUserId = localStorage.getItem('selectedUserId')
+    const selectedSwapId = localStorage.getItem('selectedSwapId')
+    
+    if (selectedUserId && chatList.length > 0) {
+      // Find chat by userId
+      const chat = chatList.find(c => c.otherUserId === selectedUserId)
+      if (chat) {
+        setSelectedChat(chat)
+        localStorage.removeItem('selectedUserId')
+        localStorage.removeItem('selectedSwapId')
+      } else if (selectedSwapId) {
+        // Find chat by swapId
+        const chat = chatList.find(c => c.swapId === selectedSwapId)
+        if (chat) {
+          setSelectedChat(chat)
+          localStorage.removeItem('selectedUserId')
+          localStorage.removeItem('selectedSwapId')
+        }
+      }
+    } else if (selectedSwapId && chatList.length > 0) {
+      const chat = chatList.find(c => c.swapId === selectedSwapId)
+      if (chat) {
+        setSelectedChat(chat)
+        localStorage.removeItem('selectedSwapId')
+      }
+    }
+  }, [chatList])
 
 
   useEffect(() => {
     if (selectedChat) {
       loadChatHistory(selectedChat.swapId)
+      
+      // Subscribe to WebSocket topic for this chat
+      const topic = websocketService.subscribe(selectedChat.swapId, (message: MessageResponse) => {
+        // Convert MessageResponse to ChatMessage
+        const chatMessage: ChatMessage = {
+          id: message.id,
+          swapId: message.swapId,
+          senderId: message.senderId,
+          receiverId: message.receiverId,
+          content: message.content,
+          timestamp: message.timestamp,
+          senderName: message.senderName,
+          receiverName: message.receiverName,
+        }
+        
+        // Add message to current chat (only if it's for the currently selected chat)
+        if (selectedChat && chatMessage.swapId === selectedChat.swapId) {
+          setMessages(prev => {
+            // Check if message already exists
+            if (prev.find(m => m.id === chatMessage.id)) {
+              return prev
+            }
+            return [...prev, chatMessage]
+          })
+        }
+        
+        // Always update chat list with last message
+        setChatList(prev => prev.map(chat => 
+          chat.swapId === chatMessage.swapId 
+            ? { ...chat, lastMessage: chatMessage }
+            : chat
+        ))
+      })
+
+      return () => {
+        // Unsubscribe when chat changes
+        if (topic) {
+          websocketService.unsubscribe(selectedChat.swapId)
+        }
+      }
     }
   }, [selectedChat])
 
@@ -155,36 +255,43 @@ const Chat = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !selectedChat) return
+    if (!newMessage.trim() || !selectedChat || !user?.id) return
 
     setSending(true)
     setError('')
 
     try {
-      // For now, we'll just add the message locally
-      // In a real implementation, you'd use WebSocket
-      const message: ChatMessage = {
-        id: Date.now().toString(),
+      // Send message via WebSocket
+      const success = websocketService.sendMessage({
         swapId: selectedChat.swapId,
-        senderId: user?.id || '',
         receiverId: selectedChat.otherUserId,
-        content: newMessage,
-        timestamp: new Date().toISOString(),
-        senderName: user?.username
+        content: newMessage.trim(),
+      })
+
+      if (success) {
+        // Optimistically add message to UI (will be confirmed by WebSocket response)
+        const tempMessage: ChatMessage = {
+          id: `temp-${Date.now()}`,
+          swapId: selectedChat.swapId,
+          senderId: user.id,
+          receiverId: selectedChat.otherUserId,
+          content: newMessage.trim(),
+          timestamp: new Date().toISOString(),
+          senderName: user.username || 'User'
+        }
+        
+        setMessages(prev => [...prev, tempMessage])
+        setNewMessage('')
+        
+        // Update chat list with last message
+        setChatList(prev => prev.map(chat => 
+          chat.swapId === selectedChat.swapId 
+            ? { ...chat, lastMessage: tempMessage }
+            : chat
+        ))
+      } else {
+        setError('Mesaj göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.')
       }
-      
-      setMessages(prev => [...prev, message])
-      setNewMessage('')
-      
-      // Update chat list with last message
-      setChatList(prev => prev.map(chat => 
-        chat.swapId === selectedChat.swapId 
-          ? { ...chat, lastMessage: message }
-          : chat
-      ))
-      
-      // TODO: Send message via WebSocket
-      // await chatService.sendMessage({ swapId: selectedChat.swapId, receiverId: selectedChat.otherUserId, content: newMessage })
     } catch (err: any) {
       setError(err.message || 'Mesaj göndərilə bilmədi')
     } finally {
@@ -240,7 +347,7 @@ const Chat = () => {
             `${u.firstName} ${u.lastName}`.toLowerCase().includes(query.toLowerCase())
           )
         )
-        .slice(0, 10) // Limit to 10 results
+        .slice(0, 15) // Limit to 15 results
         .map(u => ({
           id: u.authUserId,
           firstName: u.firstName,
@@ -426,6 +533,13 @@ const Chat = () => {
                         {selectedChat.swapOffer.skillOffered} ↔ {selectedChat.swapOffer.skillRequested}
                       </p>
                     </div>
+                  </div>
+                  <div className="connection-status">
+                    {isConnected ? (
+                      <span className="status-indicator online" title="Bağlı">🟢</span>
+                    ) : (
+                      <span className="status-indicator offline" title="Bağlı deyil">🔴</span>
+                    )}
                   </div>
                 </div>
 

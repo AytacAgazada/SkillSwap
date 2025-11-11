@@ -35,14 +35,14 @@ export interface RefreshTokenRequest {
 
 export interface OtpSendRequest {
   identifier: string; // email or phone
-  sendMethod: 'EMAIL' | 'PHONE';
-  purpose: 'ACCOUNT_CONFIRMATION' | 'PASSWORD_RESET';
+  sendMethod: 'email' | 'phone';
+  otpType: 'ACCOUNT_CONFIRMATION' | 'PASSWORD_RESET';
 }
 
 export interface OtpVerificationRequest {
   identifier: string;
   otpCode: string;
-  purpose: 'ACCOUNT_CONFIRMATION' | 'PASSWORD_RESET';
+  otpType: 'ACCOUNT_CONFIRMATION' | 'PASSWORD_RESET';
 }
 
 export interface ResetPasswordRequest {

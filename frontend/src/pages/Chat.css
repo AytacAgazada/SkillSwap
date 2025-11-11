@@ -144,6 +144,16 @@
   color: var(--text-primary);
   font-size: 0.95rem;
   margin-bottom: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.search-username {
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
 }
 
 .search-user-bio {
@@ -263,10 +273,36 @@
   z-index: 10;
 }
 
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .chat-header-info {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  flex: 1;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+.status-indicator.offline {
+  opacity: 0.5;
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .chat-avatar-large {

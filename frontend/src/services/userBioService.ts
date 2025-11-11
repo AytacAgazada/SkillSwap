@@ -1,5 +1,5 @@
 import apiCall from './api';
-import type { SkillResponse } from './skillService';
+import type { SkillResponse as SkillResponseType } from './skillService';
 
 export interface UserBio {
   id?: number;
@@ -21,7 +21,7 @@ export interface UserBioResponse {
   firstName: string;
   lastName: string;
   education?: string;
-  skills?: SkillResponse[];
+  skills?: SkillResponseType[];
   phone?: string;
   jobTitle?: string;
   yearsOfExperience?: number;
@@ -29,12 +29,7 @@ export interface UserBioResponse {
   bio?: string;
 }
 
-export interface SkillResponse {
-  id: number;
-  name: string;
-  description?: string;
-  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
-}
+// SkillResponse is imported from skillService as SkillResponseType
 
 export const userBioService = {
   // Create User Bio

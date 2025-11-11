@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { authService, type AuthResponse, type LoginRequest, type SignupRequest } from '../services/authService';
 import { userBioService } from '../services/userBioService';
 
@@ -29,7 +28,6 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -37,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const storedUser = localStorage.getItem('user');
         const accessToken = localStorage.getItem('accessToken');
-        
+
         if (storedUser && accessToken) {
           setUser(JSON.parse(storedUser));
         }
@@ -57,21 +55,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (data: LoginRequest) => {
     try {
       const response = await authService.login(data);
-      
+
       // Store tokens and user data
       localStorage.setItem('accessToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response));
-      
+
       setUser(response);
-      
+
       // Check if user has profile, if not redirect to profile page
       try {
         await userBioService.getUserBioByAuthUserId(response.id);
-        navigate('/dashboard');
+        window.location.href = '/dashboard';
       } catch {
         // Profile doesn't exist, redirect to profile creation
-        navigate('/profile');
+        window.location.href = '/profile';
       }
     } catch (error: any) {
       throw error;
@@ -82,7 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authService.signup(data);
       // After signup, redirect to login or OTP verification
-      navigate('/login');
+      window.location.href = '/login';
     } catch (error: any) {
       throw error;
     }
@@ -99,7 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       setUser(null);
-      navigate('/');
+      window.location.href = '/';
     }
   };
 
