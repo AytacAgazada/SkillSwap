@@ -74,4 +74,11 @@ public class SwapController {
         swapService.completeSwap(swapId, currentUserId, otherUserId);
         return ResponseEntity.ok("Swap successfully marked as complete. Event published.");
     }
+
+    @GetMapping("/offers/all")
+    public ResponseEntity<List<SwapOfferDTO>> getAllOffers() {
+
+        List<SwapOfferDTO> offers = swapService.getAllActiveOffers();
+        return ResponseEntity.ok(offers);
+    }
 }

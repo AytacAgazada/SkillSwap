@@ -2,6 +2,13 @@ spring:
   application:
     name: skill-swap-service
 
+  data:
+   elasticsearch:
+    repositories:
+      enabled: true
+    # İndeksi avtomatik yaradan əsas parametr
+    initialize-enabled: true
+
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres

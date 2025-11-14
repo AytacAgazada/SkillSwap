@@ -8,4 +8,6 @@ import java.util.UUID;
 public interface SwapOfferRepository extends JpaRepository<SwapOfferEntity, Long> {
 
     List<SwapOfferEntity> findByUserIdAndIsActiveTrue(UUID userId);
+
+    List<SwapOfferEntity> findByIsActiveTrue();
 }

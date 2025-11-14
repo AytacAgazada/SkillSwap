@@ -33,8 +33,16 @@ public class MatchingService {
 
     // ... findMatches metodu olduğu kimi qalır
     public List<GeoSwapOffer> findMatches(String skillRequested, double lat, double lon, double radiusKm) {
-        Criteria criteria = new Criteria("skillRequested").is(skillRequested)
-                .and(new Criteria("location").within(new GeoPoint(lat, lon), String.format("%fkm", radiusKm)))
+
+        // Nöqtəni onluq ayrıcı kimi məcburi istifadə etmək üçün Locale.US tətbiq edilir.
+        // Bu hissə əvvəlki xətanı düzəltmişdi və düzgündür.
+        String distanceString = String.format(java.util.Locale.US, "%fkm", radiusKm);
+
+        // ✅ Düzəliş 2: Axtarış edərkən kiçik hərflərə çevir
+        String skillToSearch = skillRequested.toLowerCase(java.util.Locale.ROOT);
+
+        Criteria criteria = new Criteria("skillRequested").is(skillToSearch)
+                .and(new Criteria("location").within(new GeoPoint(lat, lon), distanceString))
                 .and(new Criteria("isActive").is(true));
 
         Query query = new CriteriaQuery(criteria);

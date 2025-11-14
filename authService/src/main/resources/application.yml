@@ -61,7 +61,7 @@ eureka:
 jwt:
   secret: b3cdEi8ywRPvpCmcnEmKZtgh0g1mebDO49LSbbMDGWftX8e5ESQdfcywvNiFIz01Ot3pj/F0L1FB+hioI9zULQ==
   expiration:
-    ms: 300000 # 5 dəqiqə (milisaniyə)
+    ms: 86400000  # 5 dəqiqə (milisaniyə)
 
   # Refresh Token Settings
   refresh-expiration:

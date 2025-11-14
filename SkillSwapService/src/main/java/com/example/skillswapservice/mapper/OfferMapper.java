@@ -53,8 +53,10 @@ public class OfferMapper {
         GeoSwapOffer geoOffer = new GeoSwapOffer();
         geoOffer.setId(entity.getId());
         geoOffer.setUserId(entity.getUserId());
-        geoOffer.setSkillOffered(entity.getSkillOffered());
-        geoOffer.setSkillRequested(entity.getSkillRequested());
+
+        // ✅ Düzəliş 1: İndeksləyərkən kiçik hərflərə çevir (standartlaşdırma)
+        geoOffer.setSkillOffered(entity.getSkillOffered().toLowerCase(java.util.Locale.ROOT));
+        geoOffer.setSkillRequested(entity.getSkillRequested().toLowerCase(java.util.Locale.ROOT));
 
         // Düzəliş: Primitiv 'boolean' üçün Lombok 'getIsActive()' əvəzinə 'isActive()' yaradır.
         geoOffer.setActive(entity.isActive());

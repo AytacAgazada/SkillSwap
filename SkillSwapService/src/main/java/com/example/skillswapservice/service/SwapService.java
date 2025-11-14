@@ -93,4 +93,12 @@ public class SwapService {
 
         eventPublisher.publishSwapCompletedEvent(swapId, user1Id, user2Id);
     }
+
+    public List<SwapOfferDTO> getAllActiveOffers() {
+        // Burada SwapOfferRepository.findByIsActiveTrue() və ya sadəcə findAll() istifadə edin
+        List<SwapOfferEntity> entities = swapOfferRepository.findByIsActiveTrue();
+        return entities.stream()
+                .map(offerMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }
