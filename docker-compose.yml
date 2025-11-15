@@ -96,7 +96,7 @@ services:
   auth-service:
     build: ./authService
     ports:
-      - "1111:1111"
+      - "7008:1111"
     depends_on:
       - eureka-server
     environment:
@@ -109,7 +109,7 @@ services:
   chat-service:
     build: ./ChatService
     ports:
-      - "1113:1113"
+      - "7007:1113"
     depends_on:
       - eureka-server
       - mongodb
@@ -124,7 +124,7 @@ services:
   community-service:
     build: ./CommunityService
     ports:
-      - "1114:1114"
+      - "7006:1114"
     depends_on:
       - eureka-server
       - postgres
@@ -141,7 +141,7 @@ services:
   gamification-service:
     build: ./GamificationService
     ports:
-      - "1111:1111"
+      - "7005:1111"
     depends_on:
       - eureka-server
       - mongodb
@@ -156,7 +156,7 @@ services:
   notification-service:
     build: ./NotificationService
     ports:
-      - "1116:1116"
+      - "7004:1116"
     depends_on:
       - eureka-server
       - broker
@@ -171,7 +171,7 @@ services:
   skill-swap-service:
     build: ./SkillSwapService
     ports:
-      - "1112:1112"
+      - "7003:1112"
     depends_on:
       - eureka-server
       - es01
@@ -186,7 +186,7 @@ services:
   skill-user-service:
     build: ./SkillUserService
     ports:
-      - "1117:1117"
+      - "7002:1117"
     depends_on:
       - eureka-server
     environment:
@@ -199,7 +199,7 @@ services:
   api-gateway:
     build: ./ApiGateway
     ports:
-      - "8080:8080"
+      - "7001:8080"
     depends_on:
       - eureka-server
     environment:

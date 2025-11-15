@@ -7,6 +7,13 @@ export interface UserStats {
   badges: string[];
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  xp: number;
+  level: number;
+}
+
 export interface AddXpRequest {
   userId: string;
   xp: number;
@@ -14,16 +21,23 @@ export interface AddXpRequest {
 }
 
 export const gamificationService = {
+  // Get Leaderboard
+  getLeaderboard: async (): Promise<LeaderboardEntry[]> => {
+    return apiCall<LeaderboardEntry[]>('/api/gamification/leaderboard', {
+      method: 'GET',
+    });
+  },
+  
   // Get User Stats
   getUserStats: async (userId: string): Promise<UserStats> => {
-    return apiCall<UserStats>(`/gamification/${userId}`, {
+    return apiCall<UserStats>(`/api/gamification/${userId}`, {
       method: 'GET',
     });
   },
 
   // Add XP
   addXp: async (data: AddXpRequest): Promise<void> => {
-    return apiCall<void>('/gamification/add-xp', {
+    return apiCall<void>('/api/gamification/add-xp', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -31,7 +45,7 @@ export const gamificationService = {
 
   // Get User Badges (same as getUserStats)
   getUserBadges: async (userId: string): Promise<UserStats> => {
-    return apiCall<UserStats>(`/gamification/badges/${userId}`, {
+    return apiCall<UserStats>(`/api/gamification/badges/${userId}`, {
       method: 'GET',
     });
   },

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/gamification")
+@RequestMapping("/api/gamification")
 @RequiredArgsConstructor
 @Tag(name = "Gamification Service")
 public class GamificationController {

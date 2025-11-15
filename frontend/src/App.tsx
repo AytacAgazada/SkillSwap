@@ -77,6 +77,14 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/gamification/:userId" 
+                  element={
+                    <ProtectedRoute>
+                      <Gamification />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/gamification" 
                   element={
                     <ProtectedRoute>
